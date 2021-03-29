@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>O cholera ale memo</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="icon" href="styles/icon.png">
+</head>
+
+<body>
+
+    <div id="flip-card-template" class="flip-card-template" onclick="flip(event)" data-image-id="0">
+        <div class="flip-card-inner" id="flip-card-inner">
+            <div id="flip-card-solved" class="flip-card-blank">
+                <img class="hidden" src="resources/blank.png" alt="Memo" >
+            </div>
+            <div id="flip-card-front" class="flip-card-front">
+                <img class="shown" src="resources/memo_temp1.png" alt="Memo" >
+            </div>
+            <div id="flip-card-back" class="flip-card-back">
+                <img class="shown" src="resources/major.png" alt="Memo">
+            </div>
+        </div>
+    </div>
+
+    <div id="wrapper">
+        <div class="content">
+            <div id="header-of-game">
+                <h1>
+                    <span id="title-card">O cholera, ale memo</span>
+                </h1>
+                    <div id="wrap">
+                    <div id="elapsed-time">Czas: <span id="timedisplay">00:00:00</span></div>
+                    <div id="difficulty">  
+                    Wybierz poziom trudności:
+                    <select name="how-many" id="how-many">
+                        <option value="16" selected="selected">16</option>
+                        <option value="42">42</option>
+                        <option value="72">72</option>
+                    </select>
+                    </div>
+                    </div>
+                    <br>
+                    <div id="buttons">
+                    <button onclick="initiate()">Start</button>
+                    <button onclick="reset()">Reset</button>
+                    </div>
+                    <br>
+                    <br>
+                </div>
+            </div>      
+            <div id="flip-cards">
+            </div>
+        </div>
+        <div class="background">
+            <div class="stars"></div>
+            <div class="twinkling"></div>
+        </div>
+    </div>
+
+
+
+    <script>
+        function initiate() {
+            var i;
+            var flipcardsArea = document.getElementById("flip-cards");
+            var newCard = document.getElementById("flip-card-template");
+            var howMany = document.getElementById("how-many");
+            
+            audio.currentTime=2;
+            audio.play();
+
+            var toDelete = document.getElementById("flip-cards");
+            toDelete.innerHTML="";
+
+            if(howMany.value==16){
+                newCard.style.width="150px";
+                newCard.style.height="225px";
+                newCard.style.border="10px solid transparent";
+            } else if (howMany.value==42){
+                newCard.style.width="90px";
+                newCard.style.height="135px";
+                newCard.style.border="5px solid transparent";
+            } else if (howMany.value==72){
+                newCard.style.width="70px";
+                newCard.style.height="105px";
+                newCard.style.border="5px solid transparent";
+            }
+
+            var arrayOfIndexes=[];
+
+            for (i = 0; i < howMany.value/2; i++) {
+                var clonedCard = newCard.cloneNode(true);
+                var clonedCard2 = newCard.cloneNode(true);
+
+                clonedCard.childNodes[1].id = clonedCard.childNodes[1].id + "-" + i;
+                clonedCard.childNodes[1].childNodes[1].id = clonedCard.childNodes[1].childNodes[1].id + '-' + i;
+                clonedCard.childNodes[1].childNodes[3].id = clonedCard.childNodes[1].childNodes[3].id + '-' + i;
+                clonedCard.id = "flip-card-"+i;
+                clonedCard.className = "flip-card";
+
+                clonedCard2.childNodes[1].id = clonedCard.childNodes[1].id + "-" + i+1;
+                clonedCard2.childNodes[1].childNodes[1].id = clonedCard.childNodes[1].childNodes[1].id + '-' + i+1;
+                clonedCard2.childNodes[1].childNodes[3].id = clonedCard.childNodes[1].childNodes[3].id + '-' + i+1;
+                clonedCard2.id = "flip-card-"+i;
+                clonedCard2.className = "flip-card";
+
+                proposedId=Math.random()*36|0;
+
+                while(arrayOfIndexes.includes(proposedId)){
+                    proposedId=Math.random()*36|0;
+                }
+
+                arrayOfIndexes.push(proposedId);
+
+                clonedCard.setAttribute("data-image-id",proposedId);
+                clonedCard2.setAttribute("data-image-id",proposedId);
+
+                clonedCard.firstElementChild.children[2].children[0].src="resources/"+proposedId+".jpg";
+                clonedCard2.firstElementChild.children[2].children[0].src="resources/"+proposedId+".jpg";
+
+                flipcardsArea.appendChild(clonedCard);
+                flipcardsArea.appendChild(clonedCard2);
+            }
+
+            for (var i = flipcardsArea.children.length; i >= 0; i--) {
+                    flipcardsArea.appendChild(flipcardsArea.children[Math.random() * i | 0]);
+                }
+            
+            initTime();
+
+        }
+
+        function flip(event){
+
+            var flipped = document.getElementsByClassName("flip-card-active")
+
+            if(event.currentTarget.className.slice(9,16)=='-active'){
+                event.currentTarget.className=event.currentTarget.className.slice(0,-7);
+            } else{
+                event.currentTarget.className=event.currentTarget.className+"-active";
+            }
+            if (flipped.length==1) return;
+
+            if (flipped.length>2){
+                unflipAll();
+            } else{
+                setTimeout(isMatching,1000);
+                setTimeout(unflipAll,1000);
+            }  
+        }
+
+        function reset(){
+            var toDelete = document.getElementById("flip-cards");
+            audio.pause();
+            toDelete.innerHTML="";
+        }
+
+        function unflipAll(){
+            var flipped = document.getElementsByClassName("flip-card-active");
+
+            if(flipped.length>=2){
+                for(i=1;flipped.length!=0;i++){
+                    flipped[0].className = "flip-card";
+                }
+            }
+            setTimeout(isWon,1000);
+        }
+
+        function isMatching(){
+            var flipped = document.getElementsByClassName("flip-card-active");
+            if (flipped.length>1){
+            if(flipped[0].getAttribute("data-image-id")==flipped[1].getAttribute("data-image-id")){
+
+                audioCholera.play();
+            
+                flipped[0].removeAttribute("onclick");
+                flipped[1].removeAttribute("onclick");
+
+                flipped[0].firstElementChild.children[2].children[0].className="fade-out";
+                flipped[0].firstElementChild.children[1].parentNode.removeChild(flipped[0].firstElementChild.children[1]);
+
+                flipped[1].firstElementChild.children[2].children[0].className="fade-out";
+                flipped[1].firstElementChild.children[1].parentNode.removeChild(flipped[1].firstElementChild.children[1]);
+
+                flipped[0].id=flipped[0].id+"-solved";
+                flipped[1].id=flipped[1].id+"-solved";
+
+                flipped[0].id=flipped[0].className="flip-card-solved";
+                flipped[0].id=flipped[0].className="flip-card-solved";
+
+            } else{
+                inaczejCount++;
+                if(inaczejCount==3 || inaczejCount%10==0){
+                    audioInaczej.play();
+                }
+            }
+
+            }
+            return;
+        }
+
+        function isWon(){
+            solvedFlipCards=document.getElementsByClassName("flip-card-solved");
+            var howMany = document.getElementById("how-many");
+            if (solvedFlipCards.length==howMany.value){
+                var finishedTime = document.getElementById("timedisplay").innerText;
+                setTimeout(function(){ audioCzlowiek.play()},500);
+                var toDelete = document.getElementById("flip-cards");
+                toDelete.innerHTML='<h1 id="win-container"><span id="win-card"> Wygrałeś! <br> Twój czas w kategorii "' +howMany.value+ '" : '+ finishedTime +'</span></h1>';
+            }
+        }
+
+        var time0;
+        function initTime() {
+            time0 = new Date();
+            window.setInterval("updateTime()", 1000);
+        }
+        function updateTime() {
+            var timeNow = new Date();
+            var deltas = (Number(timeNow) - Number(time0))/1000;
+            var deltah = ("0"+String(Math.round(deltas / 3600))).substr(-2);
+            deltah = deltah.substr(-2);
+            deltas %= 3600;
+            var deltam = ("0"+String(Math.round(deltas / 60))).substr(-2);
+            deltas = ("0"+String(Math.round(deltas % 60))).substr(-2);
+            document.getElementById("timedisplay").firstChild.data=deltah+":"+deltam+":"+deltas;
+        }
+
+        var audioCzlowiek = new Audio("resources/dobry_czlowiek.mp3")
+        var audioCholera = new Audio("resources/o_cholera.mp3");
+        var audioInaczej = new Audio("resources/inaczej.mp3");
+        var audio = new Audio("resources/interstellar.mp3");
+        var inaczejCount = 0 ;
+    </script>
+
+</body>
+
+</html>
